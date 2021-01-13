@@ -4,15 +4,16 @@ __author__ = "executionByFork"
 __version__ = "1.1.0"
 __license__ = "idc"
 
+import os
 import csv
 import argparse
 
 parser = argparse.ArgumentParser(description='Converts a CyberSixGill formatted csv into various lists.')
 parser.add_argument('-v', '--version', action='version', version=__version__)
-
+parser.add_argument('-o', '--output-dir', dest='out_dir', default='C6G_output',
+                    help='output directory to write files')
 parser.add_argument('input_file', type=str,
-                    help='CyberSixGill input csv')
-#parser.add_argument('-i', '--input-file', dest='inputfile')
+                    help='CyberSixGill input csv file')
 args = parser.parse_args()
 
 def main():
@@ -33,6 +34,9 @@ def main():
         credList.append([row[0], row[1]])
       emailList.append(row[0])
 
+  if not os.path.exists(args.out_dir):
+    os.makedirs(args.out_dir)
+
   dictCount = {}
   # Sort credList by length of password descending
   # CyberSixGill tends to label hashes as plain text passwords
@@ -43,7 +47,7 @@ def main():
     key=lambda x: int(len(x[1])),
     reverse=True
   )
-  with open('C6G_credList.csv', 'w', newline='') as csvfile:
+  with open(args.out_dir + '/C6G_credList.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['EMAIL','PASSWORD'])
     for row in credList:
@@ -55,13 +59,13 @@ def main():
         dictCount[row[0]] = 1
 
   emailList = sorted(set(emailList))
-  with open('C6G_emailList.txt', 'w', newline='') as csvfile:
+  with open(args.out_dir + '/C6G_emailList.txt', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     for row in emailList:
       writer.writerow([row])
 
   dictCount = dict(sorted(dictCount.items(), reverse=True, key=lambda item: item[1]))
-  with open('C6G_metadata.csv', 'w', newline='') as csvfile:
+  with open(args.out_dir + '/C6G_metadata.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['NUM_CREDS','EMAIL'])
     for email,count in dictCount.items():
