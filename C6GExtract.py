@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __author__ = "executionByFork"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __license__ = "idc"
 
 import csv
@@ -34,7 +34,15 @@ def main():
       emailList.append(row[0])
 
   dictCount = {}
-  credList = set(tuple(item) for item in credList)
+  # Sort credList by length of password descending
+  # CyberSixGill tends to label hashes as plain text passwords
+  # This makes the hashes bubble up to the top for easy manual deletion
+  # Also, super short, likely invalid passwords fall to the bottom for similar clean up
+  credList = sorted(
+    set(tuple(item) for item in credList),
+    key=lambda x: int(len(x[1])),
+    reverse=True
+  )
   with open('C6G_credList.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['EMAIL','PASSWORD'])
@@ -46,12 +54,13 @@ def main():
       else:
         dictCount[row[0]] = 1
 
-  emailList = set(emailList)
+  emailList = sorted(set(emailList))
   with open('C6G_emailList.txt', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     for row in emailList:
       writer.writerow([row])
 
+  dictCount = dict(sorted(dictCount.items(), reverse=True, key=lambda item: item[1]))
   with open('C6G_metadata.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['NUM_CREDS','EMAIL'])
